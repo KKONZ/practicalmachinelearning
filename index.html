@@ -200,7 +200,7 @@ minMerrorRowNbr  </code></pre>
 fit.cv$dt[minMerrorRowNbr,]</code></pre>
 <pre><code>##    train.merror.mean train.merror.std test.merror.mean test.merror.std
 ## 1:                 0                0         0.004281         0.00089</code></pre>
-<p>From the cross validated confusion matrix, we see that the accuracy for the out of sample error rate is 99.57%.</p>
+<p>From the cross validated confusion matrix, we see that the accuracy is 99.57% with a kappa value of 99.46%</p>
 <pre class="r"><code>p.cv = matrix(fit.cv$pred, nrow=length(fit.cv$pred)/length(levels(outcome)),
               ncol=length(levels(outcome)))
 p.cv = max.col(p.cv, &quot;last&quot;)
@@ -250,20 +250,7 @@ head(p)</code></pre>
 ## [6] 0.9981504083</code></pre>
 <pre class="r"><code>p = matrix(p, nrow=length(levels(outcome)), ncol=length(p)/length(levels(outcome)))
 p = toupper(letters[max.col(t(p), &quot;last&quot;)])
-p</code></pre>
-<pre><code>##  [1] &quot;B&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;E&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;E&quot; &quot;A&quot;
-## [18] &quot;B&quot; &quot;B&quot; &quot;B&quot;</code></pre>
-<p>Predict and format the answers for submission</p>
-<pre class="r"><code>pml_write_files = function(x) {
-    n = length(x)
-    for (i in 1:n) {
-        filename = paste0(&quot;problem_id_&quot;, i, &quot;.txt&quot;)
-        write.table(x[i], file = filename, quote = FALSE, row.names = FALSE, 
-            col.names = FALSE)
-    }
-}
-
-pml_write_files(p)</code></pre>
+#Note the answers have been removed but when submitted result in 20/20 Quiz score</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
