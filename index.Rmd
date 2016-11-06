@@ -1,0 +1,151 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Karl Konz"
+date: "November 6, 2016"
+output: html_document
+---
+
+#Executive Summary
+Human Activity Recognition is a feild of research which has a plethora of applications, elderly monitoring and life log systems for example. As part of the Practical Machine Learning course in the Data Science specialization through Coursea, this HAR report uses Fitbit, Jawbone Up, and Nike FuelBand data to predict the manner in which the participants did the given exercise. This will be done by using the classe variable as the response. This report will cover how the model was built, the cross validation method used to build the model, and what the expected out of sample error will be. With this model built on testing data, the final step will be to predict on 20 different test cases.
+
+
+# Load the Data
+
+```{r}
+options(warn=-1)
+set.seed(1234)
+library(caret)
+library(xgboost)
+
+URLtrain<-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+URLtest <-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+download.file(URLtrain, "train.csv")
+download.file(URLtest, "test.csv")
+train <- read.csv("train.csv",na.strings=c("NA",""))
+test <-read.csv("test.csv",na.strings=c("NA",""))
+
+
+```
+
+# Clean the data
+
+As there are so many columns in this data set I have chosen to not run the str() command on the data within this report. Doing so makes it very apparent that the data has a large amount of NA values. Below the data is filtered to only keep columns in the training and testing data were there are values for at least 95% of the total observations in the training data. This procedure removes 100 columns of the original data set.
+
+
+```{r}
+
+# Set the outcome variable to classe
+outcome = train[, "classe"]
+levels(outcome) = 1:length(levels(outcome))
+
+#remove the classe values for the training data
+train$classe = NULL
+
+#Subset to just use columns that contain the words belt, forearm, and dumbell
+sub = grepl("belt|arm|dumbell", names(train))
+train = train[, sub]
+test = test[, sub]
+
+#Remove columns that have missing values in the test dataset
+colsZeroNA = colSums(is.na(test)) == 0
+train = train[, colsZeroNA]
+test = test[, colsZeroNA]
+```
+
+# Partition training and testing data 
+
+```{r}
+
+# Create predictor numeric matrix
+trainNumMtrx = as.matrix(train)
+mode(trainNumMtrx) = "numeric"
+testNumMtrx = as.matrix(test)
+mode(testNumMtrx) = "numeric"
+
+
+
+# Create outcome numeric matrix
+y = as.matrix(as.integer(outcome)-1)
+
+# xgboost parameters list
+plist <- list("objective" = "multi:softprob", 
+              "num_class" = length(levels(outcome)),  
+              "eval_metric" = "merror", 
+              "nthread" = 4,
+              "max_depth" = 15,   
+              "eta" = 0.1,    
+              "gamma" = 0,  
+              "subsample" = 1,    
+              "colsample_bytree" = 1, 
+              "min_child_weight" = 10
+              )
+```
+
+For cross validation there will be 5 folds and 250 epochs. The test error rate is .004 which occurs at the 250th iteration using the test.merror.mean. 
+```{r}
+
+
+fit.cv <- xgb.cv(param=plist, data=trainNumMtrx, label=y, 
+              nfold=5, nrounds=250, prediction=TRUE, verbose=FALSE)
+str(fit.cv)
+#Row number for the lowest multiclass error rate
+minMerrorRowNbr = which.min(fit.cv$dt[, test.merror.mean]) 
+minMerrorRowNbr  
+
+# Minimum multiclass error rate
+fit.cv$dt[minMerrorRowNbr,]
+```
+
+From the cross validated confusion matrix, we see that the accuracy for the out of sample error rate is 99.57%. 
+
+```{r}
+
+p.cv = matrix(fit.cv$pred, nrow=length(fit.cv$pred)/length(levels(outcome)),
+              ncol=length(levels(outcome)))
+p.cv = max.col(p.cv, "last")
+# confusion matrix
+confusionMatrix(factor(y+1), factor(p.cv))
+
+```
+
+# Model Training
+
+Fit a model with the parameter list assigned to the plist object and use the minimum multiclass error rate row number as the nrounds for the model.
+
+```{r}
+fit <- xgboost(param=plist, data=trainNumMtrx, label=y, 
+                           nrounds=minMerrorRowNbr, verbose=0)
+```
+
+
+
+With the XGboost model created, predict the answers. The prediction values must be converted from numeric values to characters.
+```{r}
+p <- predict(fit, testNumMtrx) 
+head(p)
+p = matrix(p, nrow=length(levels(outcome)), ncol=length(p)/length(levels(outcome)))
+p = toupper(letters[max.col(t(p), "last")])
+p
+```
+
+
+Predict and format the answers for submission
+
+```{r}
+pml_write_files = function(x) {
+    n = length(x)
+    for (i in 1:n) {
+        filename = paste0("problem_id_", i, ".txt")
+        write.table(x[i], file = filename, quote = FALSE, row.names = FALSE, 
+            col.names = FALSE)
+    }
+}
+
+pml_write_files(p)
+```
+
+# Conclusion
+
+The modeling technique used for this analysis was the xgboost method. This was chosen because it has gained popularity in recent years and used in many of the top kaggle performers. It is a optimzed distrubuted gradient boosting system that is designed to be highly efficient, flexible, and portable. This implementation utilized multiclass classification which is defined in the observations call in the cross validation model. The evaluation metric is the multi class error rate, the max depth of the trees are 15, the step size shrinkage (eta) is set to .1, minimum loss reduction is zero, and the subsample and column sample by tree (ratio of column tress grown on subset instances of the data) is set to 1, and the minimum sum of the instance weight for a child is set to 10. From this cv object we find the row number with the smallest test merror mean and use that for the nrounds in the actual model used to predict the classe.
+
+
