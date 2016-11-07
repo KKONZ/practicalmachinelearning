@@ -125,7 +125,7 @@ p <- predict(fit, testNumMtrx)
 head(p)
 p = matrix(p, nrow=length(levels(outcome)), ncol=length(p)/length(levels(outcome)))
 p = toupper(letters[max.col(t(p), "last")])
-#Note the answers have been removed but when submitted result in 20/20 Quiz score
+#Note the answers have been intentionally not outputted but when submitted results in a 20/20 quiz score.
 ```
 
 # Conclusion
