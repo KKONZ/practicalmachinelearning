@@ -157,7 +157,7 @@ test = test[, colsZeroNA]</code></pre>
 </div>
 <div id="partition-training-and-testing-data" class="section level1">
 <h1>Partition training and testing data</h1>
-<pre class="r"><code># Create predictor numeric matrix
+<pre class="r"><code># Create predictor numeric matrix, xgboost requires data to be in a numeric matrix
 trainNumMtrx = as.matrix(train)
 mode(trainNumMtrx) = &quot;numeric&quot;
 testNumMtrx = as.matrix(test)
@@ -166,9 +166,9 @@ mode(testNumMtrx) = &quot;numeric&quot;
 
 
 # Create outcome numeric matrix
-y = as.matrix(as.integer(outcome)-1)
-
-# xgboost parameters list
+y = as.matrix(as.integer(outcome)-1)</code></pre>
+<p>For cross validation there will be 5 folds and 250 epochs. The test error rate is .004 which occurs at the 250th iteration using the test.merror.mean.</p>
+<pre class="r"><code># xgboost parameters list
 plist &lt;- list(&quot;objective&quot; = &quot;multi:softprob&quot;, 
               &quot;num_class&quot; = length(levels(outcome)),  
               &quot;eval_metric&quot; = &quot;merror&quot;, 
@@ -179,9 +179,10 @@ plist &lt;- list(&quot;objective&quot; = &quot;multi:softprob&quot;,
               &quot;subsample&quot; = 1,    
               &quot;colsample_bytree&quot; = 1, 
               &quot;min_child_weight&quot; = 10
-              )</code></pre>
-<p>For cross validation there will be 5 folds and 250 epochs. The test error rate is .004 which occurs at the 250th iteration using the test.merror.mean.</p>
-<pre class="r"><code>fit.cv &lt;- xgb.cv(param=plist, data=trainNumMtrx, label=y, 
+              )
+
+# Create a cross validation object with the plist parameters using the xgboost package xgb.cv() function
+fit.cv &lt;- xgb.cv(param=plist, data=trainNumMtrx, label=y, 
               nfold=5, nrounds=250, prediction=TRUE, verbose=FALSE)
 str(fit.cv)</code></pre>
 <pre><code>## List of 2
@@ -250,7 +251,9 @@ head(p)</code></pre>
 ## [6] 0.9981504083</code></pre>
 <pre class="r"><code>p = matrix(p, nrow=length(levels(outcome)), ncol=length(p)/length(levels(outcome)))
 p = toupper(letters[max.col(t(p), &quot;last&quot;)])
-#Note the answers have been intentionally not outputted but when submitted results in a 20/20 quiz score.</code></pre>
+p</code></pre>
+<pre><code>##  [1] &quot;B&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;E&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;E&quot; &quot;A&quot;
+## [18] &quot;B&quot; &quot;B&quot; &quot;B&quot;</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>

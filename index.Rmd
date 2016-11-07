@@ -56,7 +56,7 @@ test = test[, colsZeroNA]
 
 ```{r}
 
-# Create predictor numeric matrix
+# Create predictor numeric matrix, xgboost requires data to be in a numeric matrix
 trainNumMtrx = as.matrix(train)
 mode(trainNumMtrx) = "numeric"
 testNumMtrx = as.matrix(test)
@@ -67,6 +67,10 @@ mode(testNumMtrx) = "numeric"
 # Create outcome numeric matrix
 y = as.matrix(as.integer(outcome)-1)
 
+```
+
+For cross validation there will be 5 folds and 250 epochs. The test error rate is .004 which occurs at the 250th iteration using the test.merror.mean. 
+```{r}
 # xgboost parameters list
 plist <- list("objective" = "multi:softprob", 
               "num_class" = length(levels(outcome)),  
@@ -79,12 +83,8 @@ plist <- list("objective" = "multi:softprob",
               "colsample_bytree" = 1, 
               "min_child_weight" = 10
               )
-```
 
-For cross validation there will be 5 folds and 250 epochs. The test error rate is .004 which occurs at the 250th iteration using the test.merror.mean. 
-```{r}
-
-
+# Create a cross validation object with the plist parameters using the xgboost package xgb.cv() function
 fit.cv <- xgb.cv(param=plist, data=trainNumMtrx, label=y, 
               nfold=5, nrounds=250, prediction=TRUE, verbose=FALSE)
 str(fit.cv)
@@ -125,7 +125,7 @@ p <- predict(fit, testNumMtrx)
 head(p)
 p = matrix(p, nrow=length(levels(outcome)), ncol=length(p)/length(levels(outcome)))
 p = toupper(letters[max.col(t(p), "last")])
-#Note the answers have been intentionally not outputted but when submitted results in a 20/20 quiz score.
+p
 ```
 
 # Conclusion
