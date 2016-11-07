@@ -29,7 +29,7 @@ test <-read.csv("test.csv",na.strings=c("NA",""))
 
 # Clean the data
 
-As there are so many columns in this data set I have chosen to not run the str() command on the data within this report. Doing so makes it very apparent that the data has a large amount of NA values. Below the data is filtered to only keep columns in the training and testing data were there are values for at least 95% of the total observations in the training data. This procedure removes 100 columns of the original data set.
+Set the response variable to classe and remove the values from the train data set. Next subset the columns to only those that contain belt, arm, or dumbell. Also remove columns that only have missing values.
 
 
 ```{r}
@@ -54,6 +54,7 @@ test = test[, colsZeroNA]
 
 # Partition training and testing data 
 
+Create numeric a numeric matrix of the training and testing data, this is only of the criteria for training an XGBoost model.
 ```{r}
 
 # Create predictor numeric matrix, xgboost requires data to be in a numeric matrix
