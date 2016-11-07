@@ -96,7 +96,7 @@ minMerrorRowNbr
 fit.cv$dt[minMerrorRowNbr,]
 ```
 
-From the cross validated confusion matrix, we see that the accuracy is 99.57% with a kappa value of 99.46%
+From the cross validated confusion matrix, we see that the accuracy is 99.57% with a kappa value of 99.46% and an expected out of sample error rate of .428%.
 
 ```{r}
 
