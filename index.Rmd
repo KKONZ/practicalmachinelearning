@@ -52,7 +52,7 @@ train = train[, colsZeroNA]
 test = test[, colsZeroNA]
 ```
 
-# Partition training and testing data 
+#Cross Validation
 
 Create numeric a numeric matrix of the training and testing data, this is only of the criteria for training an XGBoost model.
 ```{r}
